@@ -1,5 +1,5 @@
 body {
-    background: url('background.jpg') no-repeat center center fixed;
+    background: url('./background-tela.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #fff;
     font-family: 'Arial', sans-serif;
@@ -110,4 +110,20 @@ button:hover {
     padding: 10px 20px;
     border-radius: 5px;
     z-index: 1000;
+}
+
+
+@media (max-width: 1050px) {
+    body {
+        background: url('./background-mobile.jpg') no-repeat center bottom fixed;
+        background-size: cover;
+        color: #fff;
+        font-family: 'Arial', sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    
 }

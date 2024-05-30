@@ -1,4 +1,4 @@
-document.getElementById('feedbackForm').addEventListener('submit', async function(event) {
+document.getElementById('feedbackForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     let feedbackData = {
@@ -9,21 +9,20 @@ document.getElementById('feedbackForm').addEventListener('submit', async functio
         suggestions: document.getElementById('suggestions').value
     };
 
-    try {
-        await fetch('/submit-feedback', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(feedbackData)
-        });
+    // Pega o Feedback existente no localStorage ou inicializa um array vazio
+    let feedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
+    
+    // Adciona o novo feedback ao array
+    feedbacks.push(feedbackData);
 
-        document.getElementById('feedbackForm').reset();
-        displaySuccessMessage("Seu feedback foi enviado com sucesso!");
-    } catch (error) {
-        console.error('Erro ao enviar feedback:', error);
-        alert('Ocorreu um erro ao enviar o feedback. Por favor, tente novamente mais tarde.');
-    }
+    // Seta os arrays de feedback de volta no localStorage
+    localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+
+    // Reseta o form
+    document.getElementById('feedbackForm').reset();
+
+    // Mosta msg de sucesso
+    displaySuccessMessage("Seu feedback foi enviado com sucesso!");
 });
 
 function displaySuccessMessage(message) {
@@ -39,6 +38,10 @@ function displaySuccessMessage(message) {
 
 document.getElementById('loginButton').addEventListener('click', function() {
     document.getElementById('loginModal').style.display = 'flex';
+});
+
+document.querySelector('.close').addEventListener('click', function() {
+    document.getElementById('loginModal').style.display = 'none';
 });
 
 document.getElementById('loginForm').addEventListener('submit', function(event) {
@@ -57,30 +60,23 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     }
 });
 
-async function downloadFeedbacks() {
+function downloadFeedbacks() {
     try {
-        let response = await fetch('/get-feedbacks');
+        // Pega os feedbacks do localStorage
+        let feedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
         
-        if (!response.ok) {
-            throw new Error('Erro ao buscar feedbacks: ' + response.status);
-        }
-
-        let contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Tipo de conteúdo inesperado: ' + contentType);
-        }
-
-        let feedbacks = await response.json();
-        
+        // Prepara o dado pro Excel
         let data = [
             ["Quais insights você teve hoje?", "No que, de forma geral, podemos trabalhar para melhorar em nossa empresa?", "Do que você mais gostou em nosso evento?", "O treinamento foi útil e relevante para o seu trabalho?", "O que você sugere que façamos de forma diferente da próxima vez?"],
             ...feedbacks.map(fb => [fb.insights, fb.improvements, fb.likes, fb.relevance, fb.suggestions])
         ];
 
+        // Cria um novo workbook e um worksheet
         let wb = XLSX.utils.book_new();
         let ws = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(wb, ws, "Feedbacks");
 
+        // Escreve o novo workbook com o arquivo
         XLSX.writeFile(wb, "feedbacks.xlsx");
     } catch (error) {
         console.error('Erro ao baixar os feedbacks:', error);
